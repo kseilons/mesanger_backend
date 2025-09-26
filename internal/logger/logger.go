@@ -3,15 +3,7 @@ package logger
 import (
 	"log/slog"
 	"os"
-	"sync"
 )
-
-// Logger обертка вокруг slog с дополнительными возможностями
-type Logger struct {
-	*slog.Logger
-	levelVar *slog.LevelVar
-	mu       sync.RWMutex
-}
 
 // Config конфигурация логгера
 type Config struct {
@@ -23,10 +15,7 @@ type Config struct {
 }
 
 // New создает новый логгер
-func New(cfg Config) *Logger {
-	levelVar := &slog.LevelVar{}
-	levelVar.Set(cfg.Level)
-
+func New(cfg Config) *slog.Logger {
 	// Настройка вывода
 	var output *os.File
 	switch cfg.Output {
@@ -42,7 +31,7 @@ func New(cfg Config) *Logger {
 	// Настройка формата
 	var handler slog.Handler
 	opts := &slog.HandlerOptions{
-		Level:     levelVar,
+		Level:     cfg.Level,
 		AddSource: cfg.AddSource,
 	}
 	if cfg.Format == "json" {
@@ -51,30 +40,5 @@ func New(cfg Config) *Logger {
 		handler = slog.NewTextHandler(output, opts)
 	}
 
-	return &Logger{
-		Logger:   slog.New(handler),
-		levelVar: levelVar,
-	}
-}
-
-// SetLevel динамически меняет уровень логирования
-func (l *Logger) SetLevel(level slog.Level) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.levelVar.Set(level)
-}
-
-// GetLevel возвращает текущий уровень логирования
-func (l *Logger) GetLevel() slog.Level {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-	return l.levelVar.Level()
-}
-
-// WithContext создает логгер с контекстом
-func (l *Logger) WithContext(fields ...interface{}) *Logger {
-	return &Logger{
-		Logger:   l.Logger.With(fields...),
-		levelVar: l.levelVar,
-	}
+	return slog.New(handler)
 }
