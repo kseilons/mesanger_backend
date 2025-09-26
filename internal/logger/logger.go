@@ -3,6 +3,7 @@ package logger
 import (
 	"log/slog"
 	"os"
+	"path/filepath"
 )
 
 // Config конфигурация логгера
@@ -25,14 +26,14 @@ func New(cfg Config) *slog.Logger {
 		output = os.Stderr
 	case "file":
 		if cfg.File == "" {
-			// Если файл не указан, используем stdout
 			output = os.Stdout
 		} else {
-			// Создаем или открываем файл для записи
+			// Создаем директорию для файла логов
+			os.MkdirAll(filepath.Dir(cfg.File), 0755)
+
+			// Открываем файл для записи
 			output, err = os.OpenFile(cfg.File, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 			if err != nil {
-				// Если не удалось открыть файл, используем stderr для вывода ошибки
-				// и stdout для логов
 				os.Stderr.WriteString("Failed to open log file: " + err.Error() + "\n")
 				output = os.Stdout
 			}
