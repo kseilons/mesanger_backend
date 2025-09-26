@@ -2,21 +2,22 @@ package service
 
 import (
 	"context"
+	"log/slog"
 
-	"github.com/kseilons/messenger-backend/internal/logger"
+	"github.com/kseilons/messenger-backend/internal/models"
 )
 
 type UserService struct {
-	logger *logger.Logger
+	logger *slog.Logger
 }
 
-func NewUserService(log *logger.Logger) *UserService {
+func NewUserService(log *slog.Logger) *UserService {
 	return &UserService{
-		logger: log.WithContext("service", "user"),
+		logger: log.With("service", "user"),
 	}
 }
 
-func (s *UserService) CreateUser(ctx context.Context, user *User) error {
+func (s *UserService) CreateUser(ctx context.Context, user *models.User) error {
 	s.logger.Debug("Creating user", "username", user.Username)
 
 	s.logger.Info("User created successfully", "user_id", user.ID)
