@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/kseilons/messenger-backend/internal/api"
@@ -14,10 +15,8 @@ func main() {
 
 	// Инициализация логгера
 	log := logger.New(cfg.Log.ToLoggerConfig())
-	logger.InitGlobal(cfg.Log.ToLoggerConfig())
 
 	// Создание сервера
-	srv := server.New(cfg, log)
 
 	// Настройка debug endpoints
 	debugHandler := api.NewDebugHandler(log)
@@ -26,10 +25,10 @@ func main() {
 	http.HandleFunc("/debug/loglevel", debugHandler.SetLogLevelHandler)
 	http.HandleFunc("/debug/loglevel/current", debugHandler.GetLogLevelHandler)
 	http.HandleFunc("/health", debugHandler.HealthCheckHandler)
-
+	child := log.With(
+		slog.Group("server", slog.Int("port", cfg.Server.Port)),
+	)
 	// Запуск сервера
-	log.Info("Starting messenger server", "port", cfg.Server.Port)
-	if err := srv.Start(); err != nil {
-		log.Error("Server failed to start", "error", err)
-	}
+	child.Info("Starting messenger server")
+
 }
