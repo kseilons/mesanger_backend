@@ -34,3 +34,4 @@ go.work.sum
 out
 gen
 
+config/config.yaml
