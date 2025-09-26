@@ -26,7 +26,9 @@ jwt:
 log:
   level: "info"
   format: "json"
-  output: "stdout"
+  output: "stdout"  # "stdout", "stderr", или "file"
+  file: "logs/app.log"  # путь к файлу (используется только если output: "file")
+  add_source: true
 
 vault:
   enabled: true
