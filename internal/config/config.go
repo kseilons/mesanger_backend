@@ -56,10 +56,11 @@ type JWTConfig struct {
 
 // LogConfig конфигурация логирования
 type LogConfig struct {
-	Level  string `yaml:"level" json:"level" env:"LOG_LEVEL"`
-	Format string `yaml:"format" json:"format" env:"LOG_FORMAT"`
-	Output string `yaml:"output" json:"output" env:"LOG_OUTPUT"`
-	File   string `yaml:"file" json:"file" env:"LOG_FILE"`
+	Level     string `yaml:"level" json:"level" env:"LOG_LEVEL"`
+	Format    string `yaml:"format" json:"format" env:"LOG_FORMAT"`
+	Output    string `yaml:"output" json:"output" env:"LOG_OUTPUT"`
+	File      string `yaml:"file" json:"file" env:"LOG_FILE"`
+	AddSource bool   `yaml:"add_source" json:"add_source" env:"LOG_ADD_SOURCE"`
 }
 
 // VaultConfig конфигурация HashiCorp Vault
@@ -99,9 +100,10 @@ func (lc *LogConfig) ToLoggerConfig() logger.Config {
 	}
 
 	return logger.Config{
-		Level:  level,
-		Format: lc.Format,
-		Output: lc.Output,
-		File:   lc.File,
+		Level:     level,
+		Format:    lc.Format,
+		Output:    lc.Output,
+		File:      lc.File,
+		AddSource: lc.AddSource,
 	}
 }

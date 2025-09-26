@@ -15,10 +15,11 @@ type Logger struct {
 
 // Config конфигурация логгера
 type Config struct {
-	Level  slog.Level
-	Format string // "json" или "text"
-	Output string // "stdout", "stderr" или путь к файлу
-	File   string
+	Level     slog.Level
+	Format    string // "json" или "text"
+	Output    string // "stdout", "stderr" или путь к файлу
+	File      string
+	AddSource bool
 }
 
 // New создает новый логгер
@@ -40,14 +41,14 @@ func New(cfg Config) *Logger {
 
 	// Настройка формата
 	var handler slog.Handler
+	opts := &slog.HandlerOptions{
+		Level:     levelVar,
+		AddSource: cfg.AddSource,
+	}
 	if cfg.Format == "json" {
-		handler = slog.NewJSONHandler(output, &slog.HandlerOptions{
-			Level: levelVar,
-		})
+		handler = slog.NewJSONHandler(output, opts)
 	} else {
-		handler = slog.NewTextHandler(output, &slog.HandlerOptions{
-			Level: levelVar,
-		})
+		handler = slog.NewTextHandler(output, opts)
 	}
 
 	return &Logger{

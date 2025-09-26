@@ -27,6 +27,7 @@ log:
   level: "info"
   format: "json"
   output: "stdout"
+  add_source: true
 
 vault:
   enabled: true
