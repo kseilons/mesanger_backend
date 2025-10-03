@@ -2,7 +2,7 @@ FROM golang:alpine AS builder
 
 LABEL stage=gobuilder
 
-ENV CGO_ENABLED 1
+ENV CGO_ENABLED 0
 
 ENV GOOS linux
 
@@ -18,7 +18,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -ldflags="-s -w" -o /app/main . /app.go
+RUN go build -ldflags="-s -w" -o /app/main .
 
 FROM alpine
 
@@ -32,4 +32,4 @@ WORKDIR /app
 
 COPY --from=builder /app/main /app/main
 
-CMD [". /hello"]
+CMD ["./main"]
