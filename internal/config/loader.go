@@ -5,6 +5,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -63,6 +64,24 @@ func loadFromYAML(path string) *Config {
 			WriteTimeout: 30,
 			IdleTimeout:  60,
 		},
+		Database: DatabaseConfig{
+			Host:     "localhost",
+			Port:     5432,
+			User:     "postgres",
+			Password: "password",
+			Name:     "messenger_db",
+			SSLMode:  "disable",
+			MaxConns: 10,
+		},
+		Redis: RedisConfig{
+			Host: "localhost",
+			Port: 6379,
+			DB:   0,
+		},
+		JWT: JWTConfig{
+			ExpirationHours:       24,
+			RefreshExpirationDays: 7,
+		},
 		Log: LogConfig{
 			Level:  "info",
 			Format: "json",
@@ -71,6 +90,33 @@ func loadFromYAML(path string) *Config {
 		Vault: VaultConfig{
 			Enabled:   false,
 			MountPath: "secret",
+		},
+		Features: FeatureFlags{
+			WebSocketEnabled:  true,
+			RateLimitEnabled:  false,
+			DebugEnabled:      false,
+			KafkaEnabled:      false,
+			FileUploadEnabled: false,
+		},
+		WebSocket: WebSocketConfig{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin:     false,
+			PingPeriod:      54,
+			PongWait:        60,
+			WriteWait:       10,
+			MaxMessageSize:  1048576, // 1MB
+		},
+		Kafka: KafkaConfig{
+			Brokers:         []string{"localhost:9092"},
+			GroupID:         "messenger-backend",
+			AutoOffsetReset: "latest",
+		},
+		FileStorage: FileStorageConfig{
+			Type:         "local",
+			LocalPath:    "./uploads",
+			MaxFileSize:  10485760, // 10MB
+			AllowedTypes: []string{"image/jpeg", "image/png", "image/gif", "application/pdf"},
 		},
 	}
 
@@ -148,7 +194,26 @@ func overrideStruct(v reflect.Value, prefix string) {
 			if boolVal, err := strconv.ParseBool(envValue); err == nil {
 				field.SetBool(boolVal)
 			}
+		case reflect.Int64:
+			if intVal, err := strconv.ParseInt(envValue, 10, 64); err == nil {
+				field.SetInt(intVal)
+			}
+		case reflect.Slice:
+			// Для слайсов строк (например, KAFKA_BROKERS)
+			if field.Type().Elem().Kind() == reflect.String {
+				// Разделяем по запятой и создаем слайс
+				if envValue != "" {
+					values := []string{}
+					for _, v := range strings.Split(envValue, ",") {
+						if trimmed := strings.TrimSpace(v); trimmed != "" {
+							values = append(values, trimmed)
+						}
+					}
+					field.Set(reflect.ValueOf(values))
+				}
+			}
 		default:
+			fmt.Printf("Warning: Unhandled field type %v for field %s\n", field.Kind(), fieldType.Name)
 			panic("unhandled default case")
 		}
 	}
